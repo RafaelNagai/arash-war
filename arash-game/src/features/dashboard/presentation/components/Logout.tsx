@@ -6,7 +6,6 @@ const Logout: React.FC = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      alert("Logged out successfully!");
     } catch (error: any) {
       alert(error.message);
     }
