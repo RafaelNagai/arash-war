@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { Team } from "../../data/Team";
 import { v4 as uuidv4 } from 'uuid';
+import { DatabaseManager } from "../../../../core/database/DatabaseManager";
 
 interface ITeamContext {
     teams: Team[],
@@ -21,11 +22,22 @@ export const useTeam = () => {
 
 export const TeamContextProvider : React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [teams, setTeams] = useState<Team[]>([]);
+    const path = "/config/teams";
+
+    useEffect(() => {
+        const fetchTeams = async () => {
+            const teamsFromDatabase = await DatabaseManager.get<Team>(path);
+            const teamList = Object.values(teamsFromDatabase ?? {});
+            setTeams(teamList);
+        }
+        fetchTeams();
+    }, []);
 
     const onAdd = () => {
-        const teamItem = new Team(uuidv4(), `Nation ${teams.length}`);
+        const teamItem = new Team(uuidv4(), `Nation ${teams.length + 1}`);
         const teamList = [...teams, teamItem];
         setTeams(teamList);
+        DatabaseManager.set(path + `/${teamItem.id}`, teamItem);
     }
 
     const onChangeName = (id:string, name:string) => {
@@ -34,10 +46,15 @@ export const TeamContextProvider : React.FC<{ children: React.ReactNode }> = ({ 
             team.name = name;
         }
         setTeams([...teams]);
+        if(team) {
+            DatabaseManager.update(path + `/${id}`, team);
+        }
     }
 
     const onDelete = (id: string) => {
-        setTeams(teams.filter((item) => item.id !== id));
+        const newTeams = teams.filter((item) => item.id !== id);
+        setTeams([...newTeams]);
+        DatabaseManager.delete(path + `/${id}`);
     }
 
     return <TeamContext.Provider value={{teams, onAdd, onChangeName, onDelete}}>{children}</TeamContext.Provider>
