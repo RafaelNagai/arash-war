@@ -3,9 +3,11 @@ import Logout from "./components/Logout";
 
 const Dashboard : React.FC = () => {
     return <>
-        <h1>Logged</h1>
+        <div className="flex flex-row px-4 py-2 justify-center items-center">
+            <h1 className="flex-1">Dashboard Page</h1>
+            <Logout></Logout>
+        </div>
         <Admin></Admin>
-        <Logout></Logout>
     </>
 }
 

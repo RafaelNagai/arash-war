@@ -27,14 +27,18 @@ export const TeamContextProvider : React.FC<{ children: React.ReactNode }> = ({ 
     useEffect(() => {
         const fetchTeams = async () => {
             const teamsFromDatabase = await DatabaseManager.get<Team>(path);
-            const teamList = Object.values(teamsFromDatabase ?? {});
+            var teamList: Team[] = Object.values(teamsFromDatabase ?? {});
+            teamList = teamList.sort((a, b) => a.sequenceNumber - b.sequenceNumber);
             setTeams(teamList);
         }
         fetchTeams();
     }, []);
 
     const onAdd = () => {
-        const teamItem = new Team(uuidv4(), `Nation ${teams.length + 1}`);
+        const sequences: number[] = teams.map((item) => item.sequenceNumber);
+        const nextSequence = sequences.length > 0 ? Math.max(...sequences) + 1 : 1;
+
+        const teamItem = new Team(uuidv4(), "", nextSequence);
         const teamList = [...teams, teamItem];
         setTeams(teamList);
         DatabaseManager.set(path + `/${teamItem.id}`, teamItem);
