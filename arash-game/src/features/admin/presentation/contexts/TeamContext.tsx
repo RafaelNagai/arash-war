@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { DatabaseManager } from "../../../../core/database/DatabaseManager";
 
 interface ITeamContext {
+    isLoading: boolean,
     teams: Team[],
     onAdd: () => void,
     onChangeName: (id: string, name: string) => void,
@@ -22,14 +23,17 @@ export const useTeam = () => {
 
 export const TeamContextProvider : React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [teams, setTeams] = useState<Team[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const path = "/config/teams";
 
     useEffect(() => {
         const fetchTeams = async () => {
+            setIsLoading(true);
             const teamsFromDatabase = await DatabaseManager.get<Team>(path);
             var teamList: Team[] = Object.values(teamsFromDatabase ?? {});
             teamList = teamList.sort((a, b) => a.sequenceNumber - b.sequenceNumber);
             setTeams(teamList);
+            setIsLoading(false);
         }
         fetchTeams();
     }, []);
@@ -61,5 +65,5 @@ export const TeamContextProvider : React.FC<{ children: React.ReactNode }> = ({ 
         DatabaseManager.delete(path + `/${id}`);
     }
 
-    return <TeamContext.Provider value={{teams, onAdd, onChangeName, onDelete}}>{children}</TeamContext.Provider>
+    return <TeamContext.Provider value={{teams, onAdd, onChangeName, onDelete, isLoading}}>{children}</TeamContext.Provider>
 }

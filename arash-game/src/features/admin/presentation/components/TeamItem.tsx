@@ -12,7 +12,7 @@ export const TeamItem : React.FC<TeamItemProps> = ({ item }) => {
     const { onChangeName, onDelete } = useTeam();
     return <div className="my-2 flex items-center">
         <input
-            className="px-2 py-0.5 border rounded" 
+            className="w-full px-2 py-0.5 border rounded" 
             type="text" 
             value={item.name} 
             onChange={(e) => onChangeName(item.id, e.target.value)} 
