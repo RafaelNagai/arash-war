@@ -1,6 +1,6 @@
 import React from "react";
-import { Team } from "../../data/Team";
-import { useTeam } from "../contexts/TeamContext";
+import { Team } from "../../../data/Team";
+import { useTeam } from "../../contexts/TeamContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 

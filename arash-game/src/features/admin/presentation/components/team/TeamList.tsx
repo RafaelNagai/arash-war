@@ -1,6 +1,6 @@
 import React from "react";
 import { TeamItem } from "./TeamItem";
-import { useTeam } from "../contexts/TeamContext";
+import { useTeam } from "../../contexts/TeamContext";
 
 
 export const TeamList : React.FC = () => {
