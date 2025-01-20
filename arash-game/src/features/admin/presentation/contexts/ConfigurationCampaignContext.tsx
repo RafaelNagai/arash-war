@@ -9,6 +9,7 @@ interface IConfigurationMatch {
     isOpenedToEnter: boolean,
     generateAccessCode: () => Promise<string>,
     accessCode: string,
+    isLoading: boolean,
 }
 
 export const ConfigurationMatchContext = createContext<IConfigurationMatch | undefined>(undefined);
@@ -26,6 +27,7 @@ type ConfigurationMatchContextProviderProps = {
 }
 
 export const ConfigurationMatchProvider : React.FC<ConfigurationMatchContextProviderProps> = ({ children }) => {
+    const [ isLoading, setIsLoading ] = useState<boolean>(false);
     const [ campaignName, setCampaignName ] = useState<string>("");
     const [ isOpenedToEnter, setIsOpenedToEnter ] = useState<boolean>(false);
     const [ accessCode, setAccessCode ] = useState<string>("");
@@ -34,6 +36,7 @@ export const ConfigurationMatchProvider : React.FC<ConfigurationMatchContextProv
 
     useEffect(() => {
         const fetchCampaign = async () => {
+            setIsLoading(true);
             const fetchConfig = await databaseManager.fetch("1", ConfigurationCampaign.fromFirebase);
             if(fetchConfig){
                 setConfig(fetchConfig);
@@ -41,6 +44,7 @@ export const ConfigurationMatchProvider : React.FC<ConfigurationMatchContextProv
                 setIsOpenedToEnter(fetchConfig.isOpenedToEnter);
                 setAccessCode(fetchConfig.accessCode);
             }
+            setIsLoading(false);
         }
         fetchCampaign();
     }, []);
@@ -75,7 +79,7 @@ export const ConfigurationMatchProvider : React.FC<ConfigurationMatchContextProv
     }
 
     return <ConfigurationMatchContext.Provider 
-        value={{ onChangeCampaignName, setOpenToEnter, generateAccessCode, campaignName, isOpenedToEnter, accessCode }}>
+        value={{ isLoading, onChangeCampaignName, setOpenToEnter, generateAccessCode, campaignName, isOpenedToEnter, accessCode }}>
             {children}
     </ConfigurationMatchContext.Provider>
 }

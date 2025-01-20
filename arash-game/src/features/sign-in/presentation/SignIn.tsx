@@ -2,6 +2,7 @@ import React, { FormEvent, useState } from "react";
 import { useAuth } from "../../../core/authentication/AuthContext";
 import RoutePath from "../../../core/router/Routes";
 import { useNavigate } from "react-router-dom";
+import { DesignSystem } from "../../../core/design-system/DesignSystem";
 
 const SignIn: React.FC = () => {
     const [email, setEmail] = useState<string>("");
@@ -24,7 +25,7 @@ const SignIn: React.FC = () => {
             <div className="grid place-items-center">
                 <img src="arash-game-logo.png" className="h-64 mb-10" />        
                 <div className="flex flex-row font-bold text-2xl m-3">SIGN IN</div>
-                <div className="bg-indigo-50 mr-5 ml-5 bg-opacity-40 rounded-lg p-3 inline-block">
+                <div className="bg-indigo-200 mr-5 ml-5 bg-opacity-40 rounded-lg p-3 inline-block">
                     <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 p-4">
                         <input
                             type="email"
@@ -38,7 +39,7 @@ const SignIn: React.FC = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className="border p-2 rounded" />
-                        <button type="submit" className="bg-blue-500 text-white p-2 rounded">
+                        <button type="submit" className={`${DesignSystem.input.button} bg-blue-500`}>
                         Log In
                         </button>
                     </form>
