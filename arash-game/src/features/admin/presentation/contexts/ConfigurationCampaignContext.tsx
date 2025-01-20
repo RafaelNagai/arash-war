@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { ConfigurationCampaign } from "../../data/ConfigurationCampaign";
 import { DatabaseManager } from "../../../../core/database/DatabaseManager";
 
 interface IConfigurationMatch {
@@ -12,7 +13,7 @@ interface IConfigurationMatch {
 
 export const ConfigurationMatchContext = createContext<IConfigurationMatch | undefined>(undefined);
 
-export const useConfigurationMatch = () => {
+export const useConfigurationCampaign = () => {
     const config = useContext(ConfigurationMatchContext);
     if(!config) {
         throw new Error("ConfigurationMatchContext not loaded");
@@ -28,25 +29,34 @@ export const ConfigurationMatchProvider : React.FC<ConfigurationMatchContextProv
     const [ campaignName, setCampaignName ] = useState<string>("");
     const [ isOpenedToEnter, setIsOpenedToEnter ] = useState<boolean>(false);
     const [ accessCode, setAccessCode ] = useState<string>("");
-    const path = "/config";
+    const [ config, setConfig ] = useState<ConfigurationCampaign | null>(null);
+    const databaseManager = new DatabaseManager<ConfigurationCampaign>("campaign");
 
     useEffect(() => {
         const fetchCampaign = async () => {
-            setCampaignName(await DatabaseManager.get<string>(`${path}/name`) ?? "");
-            setIsOpenedToEnter(await DatabaseManager.get<boolean>(`${path}/isOpenedToEnter`) ?? false);
-            setAccessCode(await DatabaseManager.get<string>(`${path}/accessCode`) ?? "");
+            const fetchConfig = await databaseManager.fetch("1", ConfigurationCampaign.fromFirebase);
+            if(fetchConfig){
+                setConfig(fetchConfig);
+                setCampaignName(fetchConfig.name);
+                setIsOpenedToEnter(fetchConfig.isOpenedToEnter);
+                setAccessCode(fetchConfig.accessCode);
+            }
         }
         fetchCampaign();
     }, []);
 
     const onChangeCampaignName = async (name: string) : Promise<void> => {
         setCampaignName(name);
-        DatabaseManager.update(path, { name: name });
+        const newConfig = config!.copyWith({ name });
+        setConfig(newConfig);
+        databaseManager.update("1", newConfig);
     }
 
     const setOpenToEnter = async (isOpened: boolean) : Promise<void> => {
         setIsOpenedToEnter(isOpened);
-        DatabaseManager.update(path, { isOpenedToEnter: isOpened });
+        const newConfig = config!.copyWith({isOpenedToEnter: isOpened});
+        setConfig(newConfig);
+        databaseManager.update("1", newConfig);
     }
 
     const generateAccessCode = async () : Promise<string> => {
@@ -58,7 +68,9 @@ export const ConfigurationMatchProvider : React.FC<ConfigurationMatchContextProv
         const newAccessCode = `${randomLetter()}${randomLetter()}${randomDigit()}${randomDigit()}${randomLetter()}`;
 
         setAccessCode(newAccessCode);
-        DatabaseManager.update(path, { accessCode: newAccessCode });
+        const newConfig = config!.copyWith({accessCode: newAccessCode})
+        setConfig(newConfig);
+        databaseManager.update("1", newConfig);
         return newAccessCode;
     }
 

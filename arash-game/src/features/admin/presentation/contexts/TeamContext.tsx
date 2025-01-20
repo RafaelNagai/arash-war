@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Team } from "../../data/Team";
-import { v4 as uuidv4 } from 'uuid';
 import { DatabaseManager } from "../../../../core/database/DatabaseManager";
 
 interface ITeamContext {
@@ -24,12 +23,12 @@ export const useTeam = () => {
 export const TeamContextProvider : React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [teams, setTeams] = useState<Team[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const path = "/config/teams";
+    const databaseManager = new DatabaseManager<Team>("team")
 
     useEffect(() => {
         const fetchTeams = async () => {
             setIsLoading(true);
-            const teamsFromDatabase = await DatabaseManager.get<Team>(path);
+            const teamsFromDatabase = await databaseManager.fetchAll(Team.fromFirebase);
             var teamList: Team[] = Object.values(teamsFromDatabase ?? {});
             teamList = teamList.sort((a, b) => a.sequenceNumber - b.sequenceNumber);
             setTeams(teamList);
@@ -38,31 +37,30 @@ export const TeamContextProvider : React.FC<{ children: React.ReactNode }> = ({ 
         fetchTeams();
     }, []);
 
-    const onAdd = () => {
+    const onAdd = async () => {
         const sequences: number[] = teams.map((item) => item.sequenceNumber);
         const nextSequence = sequences.length > 0 ? Math.max(...sequences) + 1 : 1;
 
-        const teamItem = new Team(uuidv4(), "", nextSequence);
-        const teamList = [...teams, teamItem];
-        setTeams(teamList);
-        DatabaseManager.set(path + `/${teamItem.id}`, teamItem);
+        const teamItem = new Team("0", "", nextSequence);
+        const id = await databaseManager.insert(teamItem);
+
+        teams.push(new Team(id, "", nextSequence));
+        setTeams([...teams]);
     }
 
     const onChangeName = (id:string, name:string) => {
         const team = teams.find((item) => item.id === id);
         if(team){
             team.name = name;
+            databaseManager.update(id, team as Team);
         }
         setTeams([...teams]);
-        if(team) {
-            DatabaseManager.update(path + `/${id}`, team);
-        }
     }
 
     const onDelete = (id: string) => {
         const newTeams = teams.filter((item) => item.id !== id);
         setTeams([...newTeams]);
-        DatabaseManager.delete(path + `/${id}`);
+        databaseManager.delete(id);
     }
 
     return <TeamContext.Provider value={{teams, onAdd, onChangeName, onDelete, isLoading}}>{children}</TeamContext.Provider>
